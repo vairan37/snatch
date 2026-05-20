@@ -21,4 +21,15 @@ impl Snapshot {
             ref_name,
         }
     }
+
+    pub fn from_commit(commit: &git2::Commit) -> Option<Self> {
+        let message = commit.message().into_iter().next()?;
+        let marker = "SNATCH_METADATA:";
+        if let Some(index) = message.find(marker) {
+            let json_str = &message[index + marker.len()..];
+            serde_json::from_str(json_str.trim()).ok()
+        } else {
+            None
+        }
+    }
 }

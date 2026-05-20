@@ -1,7 +1,7 @@
 use git2::{Repository, Signature};
-use std::error::Error;
+use crate::error::SnatchResult;
 
-pub fn exec() -> Result<(), Box<dyn Error>> {
+pub fn exec() -> SnatchResult<()> {
     let repo = Repository::discover(".")?;
     
     let signature = Signature::now("snatch", "snatch@internal")?;
@@ -29,6 +29,12 @@ pub fn exec() -> Result<(), Box<dyn Error>> {
 
     println!("Initialized snatch in repository: {:?}", repo.path());
     println!("Marker created at refs/snatch/meta ({})", commit_id);
+
+    // Create default config file if not exists
+    if !std::path::Path::new(".snatch.toml").exists() {
+        crate::config::Config::save_default()?;
+        println!("Created default configuration file at .snatch.toml");
+    }
 
     Ok(())
 }
