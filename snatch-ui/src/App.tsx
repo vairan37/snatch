@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { GitBranch, History, MessageSquare, Terminal as TerminalIcon, ChevronRight, ChevronLeft, LayoutPanelRight } from "lucide-react";
-import { Snapshot, snatchList } from "./lib/snatch";
+import { snatchList } from "./lib/snatch";
 import { getGitStatus, GitStatus } from "./lib/git";
 import GitGraph from "./components/GitGraph";
+import SnapshotsModule from "./components/SnapshotsModule";
 import "./App.css";
 
 type Module = "graph" | "snapshots" | "chat";
@@ -12,7 +13,7 @@ function App() {
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
   const [isTerminalOpen, setIsTerminalOpen] = useState(true);
   
-  const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+  const [snapshots, setSnapshots] = useState([]);
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSnapshotsInGraph, setShowSnapshotsInGraph] = useState(false);
@@ -24,7 +25,7 @@ function App() {
         snatchList(),
         getGitStatus()
       ]);
-      setSnapshots(snapList);
+      setSnapshots(snapList as any);
       setGitStatus(status);
     } catch (err) {
       console.error(err);
@@ -107,21 +108,7 @@ function App() {
           <section className="flex-1 flex flex-col min-w-0 bg-zed-bg">
             <div className="flex-1 overflow-y-auto p-4">
               {activeModule === "snapshots" && (
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-text-secondary">Session History</h2>
-                    <button onClick={refreshData} className="btn-accent text-[10px]">Refresh</button>
-                  </div>
-                  {snapshots.map(snap => (
-                    <div key={snap.id} className="group p-3 rounded bg-zed-panel border border-white/5 hover:border-accent/20 transition-all cursor-pointer">
-                      <div className="flex justify-between items-center mb-1">
-                        <code className="text-[10px] text-accent font-bold opacity-70 group-hover:opacity-100">{snap.id.substring(0, 7)}</code>
-                        <span className="text-[10px] text-text-muted">{new Date(snap.timestamp).toLocaleTimeString()}</span>
-                      </div>
-                      <div className="text-xs leading-snug">{snap.message}</div>
-                    </div>
-                  ))}
-                </div>
+                <SnapshotsModule />
               )}
               {activeModule === "graph" && (
                 <div className="h-full flex flex-col">
