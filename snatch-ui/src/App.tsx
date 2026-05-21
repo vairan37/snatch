@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { GitBranch, History, MessageSquare, Terminal as TerminalIcon, ChevronRight, ChevronLeft, LayoutPanelRight } from "lucide-react";
 import { Snapshot, snatchList } from "./lib/snatch";
 import { getGitStatus, GitStatus } from "./lib/git";
+import GitGraph from "./components/GitGraph";
 import "./App.css";
 
 type Module = "graph" | "snapshots" | "chat";
@@ -14,6 +15,7 @@ function App() {
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSnapshotsInGraph, setShowSnapshotsInGraph] = useState(false);
 
   const refreshData = async () => {
     setLoading(true);
@@ -122,7 +124,26 @@ function App() {
                 </div>
               )}
               {activeModule === "graph" && (
-                <div className="flex items-center justify-center h-full text-text-muted italic">Git Graph View (Coming Soon)</div>
+                <div className="h-full flex flex-col">
+                  <div className="flex justify-between items-center mb-4 px-4 pt-4">
+                    <div className="flex items-center gap-4">
+                      <h2 className="text-xs font-bold uppercase tracking-wider text-text-secondary">Git History</h2>
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <div 
+                          onClick={() => setShowSnapshotsInGraph(!showSnapshotsInGraph)}
+                          className={`w-7 h-4 rounded-full relative transition-colors ${showSnapshotsInGraph ? 'bg-accent/40' : 'bg-zed-panel'}`}
+                        >
+                          <div className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-text-primary transition-transform ${showSnapshotsInGraph ? 'translate-x-3 bg-accent' : ''}`}></div>
+                        </div>
+                        <span className="text-[10px] text-text-secondary group-hover:text-text-primary transition-colors uppercase font-bold tracking-tight">Show Snapshots</span>
+                      </label>
+                    </div>
+                    <button onClick={refreshData} className="btn-accent text-[10px]">Refresh</button>
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <GitGraph snapshots={snapshots} showSnapshots={showSnapshotsInGraph} />
+                  </div>
+                </div>
               )}
               {activeModule === "chat" && (
                 <div className="flex items-center justify-center h-full text-text-muted italic">AI Contextual Chat (Coming Soon)</div>
