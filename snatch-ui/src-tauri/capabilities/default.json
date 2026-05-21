@@ -16,6 +16,18 @@
         {
           "args": true,
           "name": "git"
+        },
+        {
+          "args": true,
+          "name": "bash"
+        },
+        {
+          "args": true,
+          "name": "sh"
+        },
+        {
+          "args": true,
+          "name": "cmd.exe"
         }
       ]
     }

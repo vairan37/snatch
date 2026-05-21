@@ -6,6 +6,7 @@ import GitGraph from "./components/GitGraph";
 import SnapshotsModule from "./components/SnapshotsModule";
 import SettingsModule from "./components/SettingsModule";
 import ChatModule from "./components/ChatModule";
+import TerminalComponent from "./components/Terminal";
 import "./App.css";
 
 type Module = "graph" | "snapshots" | "chat" | "settings";
@@ -19,6 +20,18 @@ function App() {
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSnapshotsInGraph, setShowSnapshotsInGraph] = useState(false);
+
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === '\\') {
+        e.preventDefault();
+        setIsTerminalOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const refreshData = async () => {
     setLoading(true);
@@ -174,21 +187,21 @@ function App() {
 
         {/* 3. Bottom Terminal Panel */}
         {isTerminalOpen && (
-          <section className="h-48 bg-zed-sidebar border-t border-white/5 flex flex-col z-20 animate-in slide-in-from-bottom duration-200">
-            <div className="h-8 flex items-center px-3 border-b border-white/5 justify-between">
+          <section className="h-64 bg-zed-sidebar border-t border-white/5 flex flex-col z-20 animate-in slide-in-from-bottom duration-200">
+            <div className="h-8 flex items-center px-3 border-b border-white/5 justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">Terminal</span>
-                <span className="text-[10px] text-accent bg-accent/10 px-1.5 py-0.5 rounded">snatch-cli</span>
+                <span className="text-[10px] text-accent bg-accent/10 px-1.5 py-0.5 rounded">bash</span>
               </div>
-              <button onClick={() => setIsTerminalOpen(false)} className="text-text-muted hover:text-text-primary">
-                <ChevronLeft size={14} className="rotate-270" />
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] text-text-muted mr-2">Ctrl+\ to toggle</span>
+                <button onClick={() => setIsTerminalOpen(false)} className="text-text-muted hover:text-text-primary">
+                  <ChevronLeft size={14} className="rotate-270" />
+                </button>
+              </div>
             </div>
-            <div className="flex-1 p-3 overflow-y-auto font-mono text-[12px] bg-black/20">
-              <div className="text-accent mb-1">$ snatch list</div>
-              <pre className="text-text-secondary opacity-80 leading-relaxed">
-                {snapshots.length > 0 ? "Loading CLI output simulation..." : "Initializing session..."}
-              </pre>
+            <div className="flex-1 min-h-0 bg-black/20">
+              <TerminalComponent />
             </div>
           </section>
         )}
