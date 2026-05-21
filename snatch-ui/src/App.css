@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  --color-zed-bg: #1a1b1e;
+  --color-zed-sidebar: #121316;
+  --color-zed-panel: #212226;
+  --color-zed-active: #2b2c31;
+  
+  --color-accent: #00ff88;
+  --color-accent-dim: #00ff8822;
+  
+  --color-text-primary: #e2e2e2;
+  --color-text-secondary: #6b6b6b;
+  --color-text-muted: #4a4a4a;
+}
+
+@layer base {
+  * {
+    @apply border-transparent;
+  }
+  
+  body {
+    @apply bg-zed-bg text-text-primary font-mono antialiased select-none cursor-default;
+    font-size: 13px;
+  }
+
+  pre, code {
+    @apply font-mono;
+  }
+
+  /* Custom scrollbar for minimalist look */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-text-muted/30 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-muted/50;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-zed-panel overflow-hidden;
+  }
+  
+  .sidebar-item {
+    @apply flex items-center justify-center p-3 text-text-secondary hover:text-text-primary transition-colors duration-150;
+  }
+  
+  .sidebar-item.active {
+    @apply text-accent bg-zed-active border-l-2 border-accent;
+  }
+
+  .btn-accent {
+    @apply bg-accent/10 text-accent hover:bg-accent/20 px-3 py-1.5 rounded transition-all duration-150 font-medium;
+  }
+}
