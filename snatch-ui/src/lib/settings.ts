@@ -7,6 +7,8 @@ export interface AIProviderConfig {
 }
 
 export interface Settings {
+  activeProjectPath: string | null;
+  recentProjects: string[];
   aiProviders: {
     claude: AIProviderConfig;
     gpt: AIProviderConfig;
@@ -16,6 +18,8 @@ export interface Settings {
 }
 
 const DEFAULT_SETTINGS: Settings = {
+  activeProjectPath: null,
+  recentProjects: [],
   aiProviders: {
     claude: { enabled: false, apiKey: "" },
     gpt: { enabled: false, apiKey: "" },

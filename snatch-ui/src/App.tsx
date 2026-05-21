@@ -7,19 +7,38 @@ import SnapshotsModule from "./components/SnapshotsModule";
 import SettingsModule from "./components/SettingsModule";
 import ChatModule from "./components/ChatModule";
 import TerminalComponent from "./components/Terminal";
+import WelcomeScreen from "./components/WelcomeScreen";
+import { loadSettings } from "./lib/settings";
 import "./App.css";
 
-type Module = "graph" | "snapshots" | "chat" | "settings";
+type Module = "graph" | "snapshots" | "chat" | "settings" | "welcome";
 
 function App() {
-  const [activeModule, setActiveModule] = useState<Module>("snapshots");
+  const [activeModule, setActiveModule] = useState<Module>("welcome");
+  const [activeProjectPath, setActiveProjectPath] = useState<string | null>(null);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
-  const [isTerminalOpen, setIsTerminalOpen] = useState(true);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   
   const [snapshots, setSnapshots] = useState([]);
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSnapshotsInGraph, setShowSnapshotsInGraph] = useState(false);
+
+  // Load initial settings
+  useEffect(() => {
+    loadSettings().then(s => {
+      if (s.activeProjectPath) {
+        setActiveProjectPath(s.activeProjectPath);
+        setActiveModule("snapshots");
+      }
+    });
+  }, []);
+
+  const handleProjectSelected = (path: string) => {
+    setActiveProjectPath(path);
+    setActiveModule("snapshots");
+    refreshData();
+  };
 
   // Global Keyboard Shortcuts
   useEffect(() => {
@@ -34,6 +53,7 @@ function App() {
   }, []);
 
   const refreshData = async () => {
+    if (!activeProjectPath) return;
     setLoading(true);
     try {
       const [snapList, status] = await Promise.all([
@@ -50,16 +70,26 @@ function App() {
   };
 
   useEffect(() => {
-    refreshData();
-  }, []);
+    if (activeProjectPath) {
+      refreshData();
+    }
+  }, [activeProjectPath]);
+
+  if (activeModule === "welcome") {
+    return <WelcomeScreen onProjectSelected={handleProjectSelected} />;
+  }
 
   return (
     <div className="flex h-screen bg-zed-bg text-text-primary font-mono overflow-hidden">
       {/* 1. Left Sidebar (Navigation) */}
       <aside className="w-12 bg-zed-sidebar flex flex-col items-center py-4 gap-4 border-r border-white/5 z-20">
-        <div className="w-8 h-8 bg-accent/20 rounded-md flex items-center justify-center text-accent font-bold text-xs mb-4 shadow-[0_0_15px_rgba(0,255,136,0.1)]">
+        <button 
+          onClick={() => setActiveModule("welcome")}
+          className="w-8 h-8 bg-accent/20 rounded-md flex items-center justify-center text-accent font-bold text-xs mb-4 shadow-[0_0_15px_rgba(0,255,136,0.1)] hover:scale-105 transition-transform"
+          title="Switch Project"
+        >
           SN
-        </div>
+        </button>
         
         <button 
           onClick={() => setActiveModule("graph")}
