@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { GitBranch, History, MessageSquare, Terminal as TerminalIcon, ChevronRight, ChevronLeft, LayoutPanelRight } from "lucide-react";
+import { GitBranch, History, MessageSquare, Terminal as TerminalIcon, ChevronRight, ChevronLeft, LayoutPanelLeft, Settings as SettingsIcon } from "lucide-react";
 import { snatchList } from "./lib/snatch";
 import { getGitStatus, GitStatus } from "./lib/git";
 import GitGraph from "./components/GitGraph";
 import SnapshotsModule from "./components/SnapshotsModule";
+import SettingsModule from "./components/SettingsModule";
+import ChatModule from "./components/ChatModule";
 import "./App.css";
 
-type Module = "graph" | "snapshots" | "chat";
+type Module = "graph" | "snapshots" | "chat" | "settings";
 
 function App() {
   const [activeModule, setActiveModule] = useState<Module>("snapshots");
@@ -70,6 +72,14 @@ function App() {
           <MessageSquare size={20} />
         </button>
 
+        <button 
+          onClick={() => setActiveModule("settings")}
+          className={`sidebar-item ${activeModule === "settings" ? "active" : ""}`}
+          title="Settings"
+        >
+          <SettingsIcon size={20} />
+        </button>
+
         <div className="mt-auto mb-2">
           <button 
             onClick={() => setIsTerminalOpen(!isTerminalOpen)}
@@ -97,7 +107,7 @@ function App() {
               onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
               className={`p-1 rounded hover:bg-zed-active transition-colors ${isRightPanelOpen ? "text-accent" : "text-text-secondary"}`}
             >
-              <LayoutPanelRight size={16} />
+              <LayoutPanelLeft size={16} className="rotate-180" />
             </button>
           </div>
         </header>
@@ -106,7 +116,7 @@ function App() {
         <div className="flex-1 flex min-h-0">
           {/* Primary View */}
           <section className="flex-1 flex flex-col min-w-0 bg-zed-bg">
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto">
               {activeModule === "snapshots" && (
                 <SnapshotsModule />
               )}
@@ -133,7 +143,10 @@ function App() {
                 </div>
               )}
               {activeModule === "chat" && (
-                <div className="flex items-center justify-center h-full text-text-muted italic">AI Contextual Chat (Coming Soon)</div>
+                <ChatModule />
+              )}
+              {activeModule === "settings" && (
+                <SettingsModule />
               )}
             </div>
           </section>

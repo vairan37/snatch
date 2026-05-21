@@ -17,13 +17,10 @@ export interface GitLogEntry {
  * Since our 'snatch' CLI sidecar doesn't have native git passthrough yet,
  * we'll use it to execute standard git commands if we need to, 
  * or we can add a 'git' subcommand to 'snatch' later.
- * 
- * For now, we'll assume we can run standard 'git' via the shell plugin
- * if it's allowed in our capabilities.
  */
 
 async function runGit(args: string[]): Promise<string> {
-  const command = new Command("git", args);
+  const command = Command.create("git", args);
   const output = await command.execute();
   if (output.code !== 0) {
     throw new Error(output.stderr || `git ${args[0]} failed`);
