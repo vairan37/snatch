@@ -1,136 +1,79 @@
 # snatch
 
-> Lightweight Git snapshot manager for AI-assisted development sessions.
+> Gestionnaire de snapshots Git légers pour les sessions de développement assistées par IA.
 
-![snatch demo](https://via.placeholder.com/800x400.png?text=Snatch+CLI+Demo+Animation)
+![snatch demo](https://via.placeholder.com/800x400.png?text=Snatch+UI+Demo+Animation)
 
-## The Problem
+## Le Problème
 
-When working with AI coding assistants (Claude Code, Cursor, Copilot, Aider...), rapid iteration is the norm. Prompts can introduce brilliant features or break your codebase mid-thought. Standard Git commits are too heavy and rigid for this workflow — you don't want to pollute your commit history with half-baked, broken states, but you absolutely need a safety net before firing off a risky prompt.
+Lorsqu'on travaille avec des assistants de code IA (Claude Code, Cursor, Copilot, Aider...), l'itération rapide est la règle. Un prompt peut introduire une fonctionnalité brillante ou casser votre base de code en une seconde. Les commits Git standards sont trop lourds pour ce flux de travail — vous ne voulez pas polluer votre historique avec des états intermédiaires cassés, mais vous avez absolument besoin d'un filet de sécurité avant de lancer un prompt risqué.
 
-`snatch` solves this by introducing **sub-commits**: lightweight, invisible snapshots of your workspace that live outside your main Git history.
+`snatch` résout ce problème en introduisant les **sub-commits** : des snapshots légers et invisibles de votre espace de travail qui vivent en dehors de votre historique Git principal.
 
-## The Solution
+## La Solution
 
-`snatch` allows you to capture your workspace state instantly, list your snapshots, review changes, and restore them — all without touching your real Git history or polluting `git log`. 
+`snatch` vous permet de capturer l'état de votre espace de travail instantanément, de lister vos snapshots, d'examiner les changements via un diff visuel et de les restaurer — le tout sans toucher à votre historique Git réel ni polluer votre `git log`.
 
-When you reach a stable state, you can squash all your invisible snapshots into a single, clean Git commit.
+Une fois que vous avez atteint un état stable, vous pouvez fusionner (**squash**) tous vos snapshots invisibles en un seul commit Git propre et officiel.
+
+## Fonctionnalités Clés
+
+- **Snapshots Invisibles** : Stockés dans l'espace de nom Git `refs/snatch/`, ils n'apparaissent pas dans votre historique standard.
+- **Interface Graphique (Tauri)** : Visualisez l'historique de votre session, comparez les diffs et restaurez en un clic.
+- **Sauvegarde Auto-IA** : Snapshot automatique capturé avant chaque prompt envoyé via le module de chat intégré.
+- **Terminal Intégré** : Accès direct à la ligne de commande sans quitter l'application.
+- **Raccourcis Clavier** : `Cmd+S` pour capturer, `Cmd+Z` pour restaurer (filet de sécurité instantané).
+- **Multi-Projets** : Gérez plusieurs dépôts Git avec un écran d'accueil dédié et un historique des projets récents.
 
 ## Installation
 
-Currently, `snatch` is available via Cargo.
+### Via les exécutables (Recommandé)
+Téléchargez l'installeur correspondant à votre système sur la page des [Releases](https://github.com/vairan37/snatch/releases) :
+- **macOS** : `.dmg` (Intel & Apple Silicon)
+- **Windows** : `.msi`
+- **Linux** : `.AppImage`
+
+### Compilation depuis les sources
+Nécessite Rust et Node.js installés.
 
 ```bash
+# Installer le CLI
 cargo install --path .
+
+# Lancer l'interface UI (mode dev)
+cd snatch-ui
+npm install
+npm run tauri dev
 ```
 
-## Quick Start
+## Utilisation Rapide
 
-Initialize `snatch` in your existing Git repository:
+1. **Initialiser** : Ouvrez un dépôt Git dans `snatch`.
+2. **Capturer** : Avant de demander une modification complexe à votre IA, faites `Cmd+S` (ou `snatch save "message"`).
+3. **Expérimenter** : Laissez l'IA modifier votre code.
+4. **Vérifier** : Utilisez le **Diff Viewer** pour voir ce que l'IA a réellement changé.
+5. **Restaurer** : Si le résultat ne vous convient pas, faites `Cmd+Z` pour revenir à l'état précédent.
+6. **Consolider** : Une fois la tâche finie, utilisez **Squash** pour créer le commit Git final.
 
-```bash
-snatch init
-```
+## Commandes CLI
 
-Take a snapshot before asking your AI assistant to refactor the auth module:
-
-```bash
-snatch save "before auth refactor"
-```
-
-If the AI hallucinated and broke the code, view your snapshots:
-
-```bash
-snatch list
-```
-```text
-Snapshots for session: feature/auth
-----------------------------------------------------------------------------------------------------
-ID       | Timestamp                 | Message
-----------------------------------------------------------------------------------------------------
-117fdc5b | 2026-05-20 22:20:44       | before auth refactor
-```
-
-Check what changed since the snapshot:
-
-```bash
-snatch diff 117fdc5b
-```
-
-Restore the clean state:
-
-```bash
-snatch restore 117fdc5b
-```
-
-Once you're happy with a feature, consolidate your session into a real Git commit:
-
-```bash
-# Opens your $EDITOR with the squashed snapshot messages as context
-snatch squash
-
-# Or provide a message directly
-snatch squash "feat(auth): complete auth refactor using JWT"
-```
-
-## Commands
-
-| Command | Description |
+| Commande | Description |
 | :--- | :--- |
-| `snatch init` | Initializes snatch in the current Git repository. Creates a meta marker. |
-| `snatch save <message>` | Captures the current workspace state (including untracked files) as a snapshot. |
-| `snatch list` | Lists all snapshots for the current working branch (session). |
-| `snatch diff <id>` | Shows the patch difference between your working directory and the specified snapshot. |
-| `snatch restore <id>` | Hard resets your workspace to the exact state of the snapshot. |
-| `snatch drop <id>` | Deletes a specific snapshot from the session history. |
-| `snatch squash [message]` | Merges all session snapshots into a single standard Git commit and cleans up the session. If `message` is omitted, opens `$EDITOR` for interactive commit message writing. |
+| `snatch init` | Initialise snatch dans le dépôt courant. |
+| `snatch save <msg>` | Capture l'état actuel (incluant les fichiers non suivis). |
+| `snatch list` | Liste tous les snapshots de la branche actuelle. |
+| `snatch diff <id>` | Affiche le diff entre l'état actuel et le snapshot spécifié. |
+| `snatch restore <id>`| Restaure l'espace de travail à l'état exact du snapshot. |
+| `snatch squash [msg]`| Fusionne la session en un vrai commit Git et nettoie les snapshots. |
 
-*Note: You only need to provide the first few characters of a snapshot ID for `diff`, `restore`, and `drop`.*
+## Comment ça marche ?
 
-## How it Works
+`snatch` utilise les **internes natifs de Git** pour une compatibilité et des performances maximales. 
 
-`snatch` is not a wrapper around `git stash` or a new version control system. It uses **native Git internals** to provide maximum compatibility and performance.
+Chaque snapshot est un véritable objet commit Git, mais au lieu d'être attaché à `refs/heads/`, il est enregistré sous un espace de nom masqué :
+`refs/snatch/sessions/<branche>/<uuid>`
 
-When you run `snatch save`, it creates a real Git commit containing your current index and working directory. However, instead of attaching this commit to your branch history (`refs/heads/*`), it saves it under a hidden, custom reference namespace:
-
-```
-refs/snatch/sessions/<branch-name>/<uuid>
-```
-
-- **Invisible:** These commits do not show up in `git log`, `git status`, or standard Git GUI clients.
-- **Isolated:** They are "orphan" commits, meaning they don't alter your branch graph.
-- **Portable:** They are valid Git objects and are stored directly within your `.git` folder. No external databases or sidecar files are required.
-
-## Configuration
-
-When initialized, `snatch` creates a `.snatch.toml` file in the root of your project. You can customize the display format:
-
-```toml
-[session]
-name_template = "{branch}-{date}"
-
-[display]
-date_format = "%Y-%m-%d %H:%M:%S"
-show_id_full = false # Set to true to see full UUIDs instead of 8-char prefixes
-```
-
-## Roadmap
-
-### Phase 1: CLI MVP (Done)
-- Core Git integration using `git2`
-- `init`, `save`, `list`, `restore`, `diff`, `drop`, `squash`
-- Robust error handling and TOML configuration
-
-### Phase 2: CLI Enhancements
-- Interactive TUI for snapshot selection (via `dialoguer` or `inquire`)
-- Session management (switching between sessions independently of branches)
-- Push/Pull support for remote snapshot syncing
-
-### Phase 3: Desktop UI
-- Tauri + React desktop application wrapping the CLI
-- Visual snapshot timeline graph
-- 1-click visual restore and side-by-side diff viewer
-- Direct integrations with tools like Cursor and Claude Code
+Cela rend les snapshots **portables** (ils suivent le dépôt), **isolés** (ils n'altèrent pas votre graphe de branches) et **invisibles** pour les outils Git standards.
 
 ---
-*Built with Rust and libgit2.*
+*Développé avec Rust, Tauri et JetBrains Mono.*
