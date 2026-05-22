@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { GitBranch, History, MessageSquare, Terminal as TerminalIcon, ChevronRight, ChevronLeft, LayoutPanelLeft, Settings as SettingsIcon } from "lucide-react";
-import { snatchList } from "./lib/snatch";
+import { Toaster, toast } from 'react-hot-toast';
+import { snatchList, snatchSave, snatchRestore } from "./lib/snatch";
 import { getGitStatus, GitStatus } from "./lib/git";
 import GitGraph from "./components/GitGraph";
 import SnapshotsModule from "./components/SnapshotsModule";
@@ -43,14 +44,62 @@ function App() {
   // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle Terminal: Ctrl+\
       if (e.ctrlKey && e.key === '\\') {
         e.preventDefault();
         setIsTerminalOpen(prev => !prev);
       }
+      
+      // Save Snapshot: Cmd/Ctrl + S
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        if (activeProjectPath) {
+          handleQuickSave();
+        }
+      }
+
+      // Restore Last Snapshot: Cmd/Ctrl + Z
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        // Only trigger if we are not in an input/textarea
+        if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          if (activeProjectPath && snapshots.length > 0) {
+            handleQuickRestore();
+          }
+        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [activeProjectPath, snapshots]);
+
+  const handleQuickSave = async () => {
+    const msg = `quick save: ${new Date().toLocaleTimeString()}`;
+    const savingToast = toast.loading('Capturing snapshot...');
+    try {
+      await snatchSave(msg);
+      await refreshData();
+      toast.success('Snapshot saved', { id: savingToast });
+    } catch (err) {
+      toast.error(`Save failed: ${err}`, { id: savingToast });
+    }
+  };
+
+  const handleQuickRestore = async () => {
+    const lastSnap: any = snapshots[snapshots.length - 1];
+    if (!lastSnap) return;
+
+    if (!confirm(`Restore to last snapshot: "${lastSnap.message}"?`)) return;
+
+    const restoringToast = toast.loading('Restoring workspace...');
+    try {
+      await snatchRestore(lastSnap.id);
+      await refreshData();
+      toast.success('Workspace restored', { id: restoringToast });
+    } catch (err) {
+      toast.error(`Restore failed: ${err}`, { id: restoringToast });
+    }
+  };
 
   const refreshData = async () => {
     if (!activeProjectPath) return;
@@ -76,11 +125,45 @@ function App() {
   }, [activeProjectPath]);
 
   if (activeModule === "welcome") {
-    return <WelcomeScreen onProjectSelected={handleProjectSelected} />;
+    return (
+      <>
+        <WelcomeScreen onProjectSelected={handleProjectSelected} />
+        <Toaster 
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: '#212226',
+              color: '#e2e2e2',
+              border: '1px solid rgba(255,255,255,0.05)',
+              fontSize: '11px',
+              fontFamily: 'JetBrains Mono'
+            },
+            success: {
+              iconTheme: { primary: '#00ff88', secondary: '#1a1b1e' }
+            }
+          }}
+        />
+      </>
+    );
   }
 
   return (
     <div className="flex h-screen bg-zed-bg text-text-primary font-mono overflow-hidden">
+      <Toaster 
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: '#212226',
+            color: '#e2e2e2',
+            border: '1px solid rgba(255,255,255,0.05)',
+            fontSize: '11px',
+            fontFamily: 'JetBrains Mono'
+          },
+          success: {
+            iconTheme: { primary: '#00ff88', secondary: '#1a1b1e' }
+          }
+        }}
+      />
       {/* 1. Left Sidebar (Navigation) */}
       <aside className="w-12 bg-zed-sidebar flex flex-col items-center py-4 gap-4 border-r border-white/5 z-20">
         <button 
